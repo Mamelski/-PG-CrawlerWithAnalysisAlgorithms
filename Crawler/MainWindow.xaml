@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        <TextBox x:Name="startUriTextBox" Text="http://www.ox.ac.uk" HorizontalAlignment="Left" Height="23" Margin="30,41,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="144"/>
+        <TextBox x:Name="startUriTextBox" Text="http://www.eti.pg.gda.pl" HorizontalAlignment="Left" Height="23" Margin="30,41,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="232"/>
         <Label Content="Adres strony startowej:" HorizontalAlignment="Left" Margin="22,10,0,0" VerticalAlignment="Top"/>
         <Label x:Name="label" Content="Logger:" HorizontalAlignment="Left" Margin="306,20,0,0" VerticalAlignment="Top"/>
         <Button x:Name="startButton" Content="Start" HorizontalAlignment="Left" Margin="54,96,0,0" VerticalAlignment="Top" Width="75" Click="StartButton_Click"/>

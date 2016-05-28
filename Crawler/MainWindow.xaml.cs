@@ -56,7 +56,7 @@
                 return;
             }
 
-            this.webCrawler.Start(uri);
+            this.webCrawler.StartAnalyzingDomain(uri);
         }
     }
 }
