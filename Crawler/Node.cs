@@ -1,6 +1,7 @@
 ﻿namespace Crawler
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
 
     /// <summary>
@@ -24,6 +25,6 @@
         /// </summary>
         public Uri Uri { get; }
 
-        public List<Node> Neighbours { get; } = new List<Node>();
+        public  ConcurrentBag<Node> Neighbours { get; } = new ConcurrentBag<Node>();
     }
 }

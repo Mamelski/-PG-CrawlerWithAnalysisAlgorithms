@@ -2,8 +2,10 @@
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Net;
     using System.Text.RegularExpressions;
 
     /// <summary>
@@ -15,6 +17,8 @@
         /// The domain.
         /// </summary>
         private readonly Uri domain;
+
+        private List<Uri> Forbidden = new List<Uri>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UriValidator"/> class.
@@ -69,9 +73,9 @@
         /// <returns>
         /// The <see cref="bool"/>.
         /// </returns>
-        public bool ValidateUri(out Uri uriToVisit, Uri currentDomain, Match match, ConcurrentDictionary<Uri, bool> isDocumentAnalyzed)
+        public bool ValidateUri(out Uri uriToVisit, Uri currentDomain, string match, ConcurrentDictionary<Uri, bool> isDocumentAnalyzed)
         {
-            var matchValue = match.Value.Replace("<a href=", string.Empty).Replace("\"", string.Empty);
+            var matchValue = match.Replace("<a href=", string.Empty).Replace("\"", string.Empty);
 
             // #
             if (matchValue.Contains('#'))
@@ -108,7 +112,7 @@
             }
 
             // Sprawdzenie czy Uri jest w domenie, którą przeglądamy
-            if (!uriToVisit.ToString().Contains(this.domain.ToString()))
+            if (uriToVisit.IsAbsoluteUri && !this.domain.IsBaseOf(uriToVisit))
             {
                 uriToVisit = null;
                 return false;
@@ -117,8 +121,8 @@
             // Czy jest plikiem
             if (uriToVisit.IsFile)
             {
-                Counter++;
-               // Debug.WriteLine($"{counter++} {uriToVisit}");
+                //Counter++;
+               Debug.WriteLine($"{Counter++} {uriToVisit}");
                 uriToVisit = null;
                 return false;
             }
@@ -139,9 +143,37 @@
             //    }
             //}
 
-            Counter++;
-            //Debug.WriteLine($"{counter++} {uriToVisit}");
+            //Counter++;
+            Debug.WriteLine($"{Counter++} {uriToVisit}");
             return true;
+        }
+
+        private readonly Regex userAgentRegex = new Regex(@"User-agent\s*:\s*\*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex disallowRegex = new Regex(@"Disallow\s*:\s*(.+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        public void ParserRobots()
+        {
+            var robotsTxt = new WebClient().DownloadString(this.domain + "/robots.txt");
+            var robotsLines = robotsTxt.Split('\n');
+
+            for (var i = 0; i < robotsLines.Length; i++)
+            {
+                if (this.userAgentRegex.IsMatch(robotsLines[i]))
+                {
+                    for (i = i + 1; i < robotsLines.Length; i++)
+                    {
+                        var match = disallowRegex.Match(robotsLines[i]);
+
+                        if (match.Success)
+                        {
+                            this.Forbidden.Add(
+                                match.Value == "/"
+                                    ? this.domain
+                                    : new Uri(this.domain, new Uri(match.Value)));
+                        }
+                    }
+                }
+            }
         }
     }
 }

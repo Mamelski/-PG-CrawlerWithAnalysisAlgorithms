@@ -34,10 +34,10 @@
         /// </param>
         public void AddErrorMessage(string message)
         {
-            this.loggingTextBlock.Inlines.Add(new Run("[Error]" + message + Environment.NewLine)
-            {
-                Foreground = Brushes.Red
-            });
+            //this.loggingTextBlock.Inlines.Add(new Run("[Error]" + message + Environment.NewLine)
+            //{
+            //    Foreground = Brushes.Red
+            //});
         }
 
         /// <summary>

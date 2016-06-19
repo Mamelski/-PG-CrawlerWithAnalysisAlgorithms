@@ -21,7 +21,7 @@
         /// <summary>
         /// The graph.
         /// </summary>
-        private readonly ConcurrentBag<Node> graph = new ConcurrentBag<Node>();
+        private readonly ConcurrentDictionary<Uri,Node> graph = new ConcurrentDictionary<Uri,Node>();
 
         private readonly ConcurrentDictionary<Uri, bool> isDocumentAnalyzed = new ConcurrentDictionary<Uri, bool>();
 
@@ -29,9 +29,9 @@
 
         private UriValidator uriValidator;
 
-      
+        private DocumentSaver documentSaver;
 
-        private readonly Regex linkRegex = new Regex(@"<a\s+(?:[^>]*?\s+)?href=""([^""]*)""", RegexOptions.Compiled);
+        private readonly Regex linkRegex = new Regex(@"<a\s+(?:[^>]*?\s+)?href=""([^""]*)""", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WebCrawler"/> class.
@@ -44,8 +44,6 @@
             this.log = log;
         }
 
-    
-
         /// <summary>
         /// The start.
         /// </summary>
@@ -54,36 +52,62 @@
         /// </param>
         public async void StartAnalyzingDomain(Uri startDomain)
         {
-            this.uriValidator = new UriValidator(startDomain);
             this.domain = startDomain;
+            this.uriValidator = new UriValidator(startDomain);
+            this.documentSaver = new DocumentSaver(startDomain);
+
+            this.graph.TryAdd(startDomain,new Node(startDomain));
+
+           // this.uriValidator.ParserRobots();
+            
+            var sw = new Stopwatch();
+            sw.Start();
             await this.ParseDocument(this.domain);
+
+            sw.Stop();
+            Debug.WriteLine(sw.Elapsed);
+            var ser = new GraphSerializer();
+            ser.Serialize(this.graph);
+            int a = 0;
         }
 
         public async Task ParseDocument(Uri uri)
         {
-            // ++Counter;
-
             string content;
             try
             {
-                content = new WebClient().DownloadString(uri);
+                content = await new WebClient().DownloadStringTaskAsync(uri);
             }
-            catch (WebException ex)
+            catch (WebException)
             {
                 return;
             }
 
             var matches = this.linkRegex.Matches(content).Cast<Match>();
             var tasks = new ConcurrentBag<Task>();
+            tasks.Add(this.documentSaver.SaveDocument(uri,content));
 
             Parallel.ForEach(matches, match =>
+            //foreach (var match in matches)
+            
+                
+            
                     {
                         Uri uriToVisit;
-                        if (this.uriValidator.ValidateUri(out uriToVisit, this.domain, match, this.isDocumentAnalyzed))
+                        if (this.uriValidator.ValidateUri(out uriToVisit, this.domain, match.Groups[1].Value, this.isDocumentAnalyzed))
                         {
                             try
                             {
-                                this.graph.Add(new Node(uriToVisit));
+                                var nextNode = new Node(uriToVisit);
+                                if (!this.graph.ContainsKey(uriToVisit))
+                                {
+                                    while (!this.graph.TryAdd(uriToVisit, nextNode))
+                                    {
+                                        Debug.WriteLine("dupa");
+                                    }
+                                }
+
+                                this.graph[uri].Neighbours.Add(nextNode);
                                 this.isDocumentAnalyzed[uriToVisit] = true;
                                 tasks.Add(this.ParseDocument(uriToVisit));
                             }
@@ -94,7 +118,6 @@
                         }
                     });
             await Task.WhenAll(tasks);
-            Debug.WriteLine(this.uriValidator.Counter);
         }
     }
 }
