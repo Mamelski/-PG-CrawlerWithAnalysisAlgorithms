@@ -2,8 +2,6 @@
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
@@ -18,7 +16,20 @@
         /// </summary>
         private readonly Uri domain;
 
-        private List<Uri> Forbidden = new List<Uri>();
+        /// <summary>
+        /// The forbidden.
+        /// </summary>
+        private readonly ConcurrentBag<Uri> forbiddenUris = new ConcurrentBag<Uri>();
+
+        /// <summary>
+        /// The user agent regex.
+        /// </summary>
+        private readonly Regex userAgentRegex = new Regex(@"User-agent\s*:\s*\*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        /// <summary>
+        /// The disallow regex.
+        /// </summary>
+        private readonly Regex disallowRegex = new Regex(@"Disallow\s*:\s*(.+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UriValidator"/> class.
@@ -31,126 +42,71 @@
             this.domain = domain;
         }
 
-        private int counter = 0;
-        private object counterLockObject = new object();
-        public int Counter
-        {
-            get
-            {
-                lock (counterLockObject)
-                {
-                    if (counter > 3000)
-                    {
-                        int a = 0;
-                    }
-                    return counter;
-                }
-            }
-            set
-            {
-                lock (counterLockObject)
-                {
-                    counter = value;
-                }
-            }
-        }
-
         /// <summary>
         /// The validate uri.
         /// </summary>
-        /// <param name="uriToVisit">
-        /// The uri to visit.
-        /// </param>
         /// <param name="currentDomain">
         /// The current domain.
         /// </param>
         /// <param name="match">
         /// The match.
         /// </param>
-        /// <param name="graph">
-        /// The graph.
-        /// </param>
         /// <returns>
-        /// The <see cref="bool"/>.
+        /// The <see cref="NodeStatus"/>.
         /// </returns>
-        public bool ValidateUri(out Uri uriToVisit, Uri currentDomain, string match, ConcurrentDictionary<Uri, bool> isDocumentAnalyzed)
+        public Node ValidateUri(Uri currentDomain, string match)
         {
-            var matchValue = match.Replace("<a href=", string.Empty).Replace("\"", string.Empty);
-
-            // #
-            if (matchValue.Contains('#'))
+            if (match.Contains('#'))
             {
-                matchValue = matchValue.Remove(matchValue.IndexOf('#'));
+                match = match.Remove(match.IndexOf('#'));
             }
 
-            // ?
-            if (matchValue.Contains('?'))
+            if (match.Contains('?'))
             {
-                matchValue = matchValue.Remove(matchValue.IndexOf('?'));
+                match = match.Remove(match.IndexOf('?'));
             }
 
-            // Puste Uri
-            if (string.IsNullOrEmpty(matchValue))
-            {
-                uriToVisit = null;
-                return false;
-            }
+            Uri url;
 
-            // Przekształcenie na pełną formę
-            if (Uri.IsWellFormedUriString(matchValue, UriKind.Relative))
+            if (Uri.IsWellFormedUriString(match, UriKind.Relative))
             {
-                uriToVisit = new Uri(currentDomain, matchValue);
+                url = new Uri(currentDomain, match);
             }
-            else if (Uri.IsWellFormedUriString(matchValue, UriKind.Absolute))
+            else if (Uri.IsWellFormedUriString(match, UriKind.Absolute))
             {
-                uriToVisit = new Uri(matchValue);
+                url = new Uri(match);
             }
             else
             {
-                uriToVisit = null;
-                return false;
+                return new Node(null, NodeStatus.Invalid);
             }
 
-            // Sprawdzenie czy Uri jest w domenie, którą przeglądamy
-            if (uriToVisit.IsAbsoluteUri && !this.domain.IsBaseOf(uriToVisit))
+            if (url.IsFile)
             {
-                uriToVisit = null;
-                return false;
+                return new Node(url, NodeStatus.File);
             }
 
-            // Czy jest plikiem
-            if (uriToVisit.IsFile)
+            if (url.IsAbsoluteUri && !currentDomain.IsBaseOf(url))
             {
-                //Counter++;
-               Debug.WriteLine($"{Counter++} {uriToVisit}");
-                uriToVisit = null;
-                return false;
+                return new Node(url, NodeStatus.NotInDomain);
             }
 
-            if (isDocumentAnalyzed.ContainsKey(uriToVisit) && isDocumentAnalyzed[uriToVisit])
+            if (!url.IsAbsoluteUri)
             {
-                uriToVisit = null;
-                return false;
+                url = new Uri(currentDomain, url);
             }
 
-            // Sprawdzenie czy dane Uri już istnieje
-            //foreach (var node in graph)
-            //{
-            //    if (node.Uri == uriToVisit)
-            //    {
-            //        uriToVisit = null;
-            //        return false;
-            //    }
-            //}
+            if (this.forbiddenUris.Contains(url))
+            {
+                return new Node(url, NodeStatus.Forbidden);
+            }
 
-            //Counter++;
-            Debug.WriteLine($"{Counter++} {uriToVisit}");
-            return true;
+           return new Node(url, NodeStatus.Valid);
         }
 
-        private readonly Regex userAgentRegex = new Regex(@"User-agent\s*:\s*\*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private readonly Regex disallowRegex = new Regex(@"Disallow\s*:\s*(.+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
+        /// <summary>
+        /// The parser robots.
+        /// </summary>
         public void ParserRobots()
         {
             var robotsTxt = new WebClient().DownloadString(this.domain + "/robots.txt");
@@ -162,11 +118,11 @@
                 {
                     for (i = i + 1; i < robotsLines.Length; i++)
                     {
-                        var match = disallowRegex.Match(robotsLines[i]);
+                        var match = this.disallowRegex.Match(robotsLines[i]);
 
                         if (match.Success)
                         {
-                            this.Forbidden.Add(
+                            this.forbiddenUris.Add(
                                 match.Value == "/"
                                     ? this.domain
                                     : new Uri(this.domain, new Uri(match.Value)));

@@ -59,6 +59,7 @@
     <Compile Include="GraphSerializer.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Node.cs" />
+    <Compile Include="NodeStatus.cs" />
     <Compile Include="UriValidator.cs" />
     <Compile Include="WebCrawler.cs" />
     <Page Include="MainWindow.xaml">

@@ -15,15 +15,26 @@
         /// <param name="uri">
         /// The uri.
         /// </param>
-        public Node(Uri uri)
+        public Node(Uri uri, NodeStatus status)
         {
             this.Uri = uri;
+            this.Status = status;
         }
+
+        //public Node(string uri, NodeStatus status)
+        //{
+        //    this.UriString = uri;
+        //    this.Status = status;
+        //}
 
         /// <summary>
         /// Gets the uri.
         /// </summary>
         public Uri Uri { get; }
+
+        public string UriString { get; }
+
+        public NodeStatus Status { get; }
 
         public  ConcurrentBag<Node> Neighbours { get; } = new ConcurrentBag<Node>();
     }
