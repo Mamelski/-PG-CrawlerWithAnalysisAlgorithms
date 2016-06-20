@@ -109,7 +109,17 @@
         /// </summary>
         public void ParserRobots()
         {
-            var robotsTxt = new WebClient().DownloadString(this.domain + "/robots.txt");
+            string robotsTxt;
+            try
+            {
+                robotsTxt = new WebClient().DownloadString(this.domain + "/robots.txt");
+            }
+            catch (WebException)
+            {
+                // Nie ma robotów
+                return;
+            }
+
             var robotsLines = robotsTxt.Split('\n');
 
             for (var i = 0; i < robotsLines.Length; i++)

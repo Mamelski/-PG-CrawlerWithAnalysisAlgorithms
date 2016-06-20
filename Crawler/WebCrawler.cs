@@ -59,7 +59,7 @@
             this.graph.TryAdd(startDomain, new Node(startDomain, NodeStatus.Valid));
             this.analyzedDocuments.Add(startDomain);
 
-            // this.uriValidator.ParserRobots();
+            this.uriValidator.ParserRobots();
 
             var sw = new Stopwatch();
             sw.Start();
