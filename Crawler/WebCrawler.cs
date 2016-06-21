@@ -8,6 +8,9 @@
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
+    using Crawler.DiscOperations;
+    using Crawler.Model;
+
     /// <summary>
     /// The web crawler.
     /// </summary>
@@ -21,7 +24,7 @@
         /// <summary>
         /// The graph.
         /// </summary>
-        private readonly ConcurrentDictionary<Uri, Node> graph = new ConcurrentDictionary<Uri, Node>();
+        private readonly Graph graph = new Graph();
 
         private readonly ConcurrentBag<Uri> analyzedDocuments = new ConcurrentBag<Uri>();
 
@@ -29,7 +32,7 @@
 
         private UriValidator uriValidator;
 
-        private DocumentSaver documentSaver;
+        private Disc disc;
 
         private readonly Regex linkRegex = new Regex(@"<a\s+(?:[^>]*?\s+)?href=""([^""]*)""", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -50,13 +53,13 @@
         /// <param name="startDomain">
         /// The start url.
         /// </param>
-        public async void StartAnalyzingDomain(Uri startDomain)
+        public async Task<Graph> StartAnalyzingDomain(Uri startDomain)
         {
             this.domain = startDomain;
             this.uriValidator = new UriValidator(startDomain);
-            this.documentSaver = new DocumentSaver(startDomain);
+            this.disc = new Disc(startDomain);
 
-            this.graph.TryAdd(startDomain, new Node(startDomain, NodeStatus.Valid));
+            this.graph.Neighborhood.TryAdd(startDomain, new Node(startDomain, NodeStatus.Valid));
             this.analyzedDocuments.Add(startDomain);
 
             this.uriValidator.ParserRobots();
@@ -64,12 +67,11 @@
             var sw = new Stopwatch();
             sw.Start();
             await this.ParseDocument(this.domain);
-
             sw.Stop();
+
             Debug.WriteLine(sw.Elapsed);
-            var ser = new GraphSerializer();
-            ser.Serialize(this.graph);
-            int a = 0;
+
+            return this.graph;
         }
 
         public async Task ParseDocument(Uri uri)
@@ -85,7 +87,7 @@
             }
 
             var matches = this.linkRegex.Matches(content).Cast<Match>();
-            var tasks = new ConcurrentBag<Task> { this.documentSaver.SaveDocument(uri, content) };
+            var tasks = new ConcurrentBag<Task> { this.disc.SaveDocument(uri, content) };
 
             Parallel.ForEach(matches, match =>
                 {
@@ -105,15 +107,17 @@
                                
                             }
 
-                            if (!this.graph.ContainsKey(nodeToVisit.Uri))
+                            if (!this.graph.Neighborhood.ContainsKey(nodeToVisit.Uri))
                             {
-                                while (!this.graph.TryAdd(nodeToVisit.Uri, nodeToVisit));
+                                while (!this.graph.Neighborhood.TryAdd(nodeToVisit.Uri, nodeToVisit));
                             }
                         }
 
-                        this.graph[uri].Neighbours.Add(nodeToVisit);
-
-                        
+                        // TODO za dużo sąsiadów
+                        if (!this.graph.Neighborhood[uri].Neighbours.Contains(nodeToVisit))
+                        {
+                            this.graph.Neighborhood[uri].Neighbours.Add(nodeToVisit);
+                        }
                     }
                     catch (Exception ex)
                     {

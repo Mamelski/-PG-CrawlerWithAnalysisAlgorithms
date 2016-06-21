@@ -3,6 +3,9 @@
     using System;
     using System.Windows;
 
+    using Crawler.DiscOperations;
+    using Crawler.Model;
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -37,7 +40,7 @@
         /// <param name="e">
         /// The e.
         /// </param>
-        private void StartButton_Click(object sender, RoutedEventArgs e)
+        private async void StartButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(this.startUriTextBox.Text))
             {
@@ -56,7 +59,11 @@
                 return;
             }
 
-            this.webCrawler.StartAnalyzingDomain(uri);
+            var graph = await this.webCrawler.StartAnalyzingDomain(uri);
+            new ReportGenerator().CreateReport(graph);
+            var disc = new Disc(uri);
+
+            disc.SaveReport(graph);
         }
     }
 }

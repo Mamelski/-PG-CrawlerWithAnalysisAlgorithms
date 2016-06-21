@@ -6,6 +6,8 @@
     using System.Net;
     using System.Text.RegularExpressions;
 
+    using Crawler.Model;
+
     /// <summary>
     /// The uri validator.
     /// </summary>

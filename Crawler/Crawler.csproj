@@ -55,11 +55,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="DocumentSaver.cs" />
-    <Compile Include="GraphSerializer.cs" />
+    <Compile Include="DiscOperations\Disc.cs" />
+    <Compile Include="Model\Graph.cs" />
     <Compile Include="Logger.cs" />
-    <Compile Include="Node.cs" />
-    <Compile Include="NodeStatus.cs" />
+    <Compile Include="Model\Node.cs" />
+    <Compile Include="Model\NodeStatus.cs" />
+    <Compile Include="ReportGenerator.cs" />
     <Compile Include="UriValidator.cs" />
     <Compile Include="WebCrawler.cs" />
     <Page Include="MainWindow.xaml">
