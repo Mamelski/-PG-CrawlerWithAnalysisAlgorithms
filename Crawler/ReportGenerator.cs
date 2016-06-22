@@ -1,5 +1,7 @@
 ﻿namespace Crawler
 {
+    using Crawler.Algorithms;
+
     using Model;
 
     /// <summary>
@@ -25,10 +27,13 @@
                         ++graph.Neighborhood[subnode.Uri].InDegree;
                     }
 
-                    //OutDegree
+                    // OutDegree
                     ++graph.Neighborhood[node.Key].OutDegree;
                 }
             }
+
+            var floyd = new FloydWarshall();
+            floyd.DoWork(graph);
         }
     }
 }

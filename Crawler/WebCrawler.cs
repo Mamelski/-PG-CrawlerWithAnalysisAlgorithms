@@ -94,9 +94,11 @@
                     var nodeToVisit = this.uriValidator.ValidateUri(this.domain, match.Groups[1].Value);
                     try
                     {
-                        if (nodeToVisit.Status != NodeStatus.Invalid )
+                        if (nodeToVisit.Status == NodeStatus.Invalid)
                         {
-                            if (!this.analyzedDocuments.Contains(nodeToVisit.Uri))
+                            return;
+                        }
+                        if (!this.analyzedDocuments.Contains(nodeToVisit.Uri))
                             {
                                 this.analyzedDocuments.Add(nodeToVisit.Uri);
                                 if (nodeToVisit.Status != NodeStatus.NotInDomain)
@@ -111,7 +113,7 @@
                             {
                                 while (!this.graph.Neighborhood.TryAdd(nodeToVisit.Uri, nodeToVisit));
                             }
-                        }
+                        
 
                         // TODO za dużo sąsiadów
                         if (!this.graph.Neighborhood[uri].Neighbours.Contains(nodeToVisit))

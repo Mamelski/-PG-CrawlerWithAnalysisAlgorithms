@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
 
     public class Node : IEquatable<Node>
     {
@@ -23,6 +24,8 @@
         public int InDegree { get; set; }
 
         public int OutDegree { get; set; }
+
+        public Dictionary<Uri, List<Node>> ShortestPaths { get; } = new Dictionary<Uri, List<Node>>();
 
         public bool Equals(Node other)
         {

@@ -55,6 +55,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Algorithms\FloydWarshall.cs" />
+    <Compile Include="Algorithms\Matrix.cs" />
     <Compile Include="DiscOperations\Disc.cs" />
     <Compile Include="Model\Graph.cs" />
     <Compile Include="Logger.cs" />

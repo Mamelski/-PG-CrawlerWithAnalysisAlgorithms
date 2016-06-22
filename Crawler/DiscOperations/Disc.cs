@@ -79,14 +79,57 @@
         {
             var illegalChars = Path.GetInvalidPathChars();
             var filename = new string(this.domain.ToString().Where(c => !illegalChars.Contains(c) && !this.windowsIllegalChars.Contains(c)).ToArray());
-            using (var sw = new StreamWriter($"{filename}-raw.txt"))
+
+            this.SaveReport(graph, filename);
+            this.SavePaths(graph, filename);
+        }
+
+        private void SaveReport(Graph graph, string filename)
+        {
+            using (var reportSw = new StreamWriter($"{filename}-report.txt"))
             {
+                // Graph info
+                reportSw.WriteLine("GRAF");
+                reportSw.WriteLine($"Liczba wierzchołków: {graph.NumberOfNodes}");
+                reportSw.WriteLine($"Liczba krawędzi: {graph.NumberOfEdges}");
+                reportSw.WriteLine($"Średnia odległość: {graph.GetAverageDistance()}");
+                reportSw.WriteLine($"Średnica grafu: {graph.GetDiameter()}");
+                reportSw.WriteLine($"Promień grafu: {graph.GetRadius()}");
+                reportSw.WriteLine("\n");
+
+                // Node info
                 foreach (var node in graph.Neighborhood)
                 {
-                    sw.WriteLine(node.Key.ToString());
+                    reportSw.WriteLine($"Wierzchołek: {node.Key}");
+                    reportSw.WriteLine($"\tInDegree: {node.Value.InDegree}");
+                    reportSw.WriteLine($"\tOutDegree: {node.Value.OutDegree}");
+                    reportSw.WriteLine("\tSąsiedzi:");
                     foreach (var subnode in node.Value.Neighbours)
                     {
-                        sw.WriteLine("\t" + subnode.Uri);
+                        reportSw.WriteLine("\t\t" + subnode.Uri);
+                    }
+                }
+            }
+        }
+
+        private void SavePaths(Graph graph, string filename)
+        {
+            using (var sw = new StreamWriter($"{filename}-paths.txt"))
+            {
+                // Graph info
+                sw.WriteLine("Najkrótsze ścieżki:");
+
+                // Node info
+                foreach (var node in graph.Neighborhood)
+                {
+                    sw.WriteLine($"Wierzchołek: {node}");
+                    foreach (var neighbour in node.Value.ShortestPaths)
+                    {
+                        sw.WriteLine($"\tŚcieżka do {neighbour.Key}");
+                        foreach (var step in neighbour.Value)
+                        {
+                            sw.WriteLine($"\t\t{step.Uri}");
+                        }
                     }
                 }
             }
