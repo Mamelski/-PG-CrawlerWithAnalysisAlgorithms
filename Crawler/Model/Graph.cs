@@ -57,6 +57,55 @@
             return value / count;
         }
 
+        public double AverageInDegree
+        {
+            get
+            {
+                double count = 0;
+                double sum = 0;
+                foreach (var node in this.Neighborhood)
+                {
+                    ++count;
+                    sum += node.Value.InDegree;
+                }
+
+                return sum / count;
+            }
+        }
+
+        public double AverageOutDegree
+        {
+            get
+            {
+                double count = 0;
+                double sum = 0;
+                foreach (var node in this.Neighborhood)
+                {
+                    ++count;
+                    sum += node.Value.OutDegree;
+                }
+
+                return sum / count;
+            }
+        }
+
+        public double AveragePageRank
+        {
+            get
+            {
+                double count = 0;
+                double sum = 0;
+                foreach (var node in this.Neighborhood)
+                {
+                    ++count;
+                    sum += node.Value.PageRank;
+                }
+
+                return sum / count;
+            }
+        }
+
+
 
         public int GetDiameter()
         {

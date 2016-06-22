@@ -25,6 +25,8 @@
 
         public int OutDegree { get; set; }
 
+        public double PageRank { get; set; }
+
         public Dictionary<Uri, List<Node>> ShortestPaths { get; } = new Dictionary<Uri, List<Node>>();
 
         public bool Equals(Node other)

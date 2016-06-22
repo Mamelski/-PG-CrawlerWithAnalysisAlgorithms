@@ -34,6 +34,8 @@
 
             var floyd = new FloydWarshall();
             floyd.DoWork(graph);
+            var PageRank = new PageRank(graph);
+            PageRank.DoWork();
         }
     }
 }

@@ -57,6 +57,7 @@
     </ApplicationDefinition>
     <Compile Include="Algorithms\FloydWarshall.cs" />
     <Compile Include="Algorithms\Matrix.cs" />
+    <Compile Include="Algorithms\PageRank.cs" />
     <Compile Include="DiscOperations\Disc.cs" />
     <Compile Include="Model\Graph.cs" />
     <Compile Include="Logger.cs" />

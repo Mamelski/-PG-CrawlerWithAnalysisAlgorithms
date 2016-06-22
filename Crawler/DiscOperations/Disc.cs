@@ -95,6 +95,11 @@
                 reportSw.WriteLine($"Średnia odległość: {graph.GetAverageDistance()}");
                 reportSw.WriteLine($"Średnica grafu: {graph.GetDiameter()}");
                 reportSw.WriteLine($"Promień grafu: {graph.GetRadius()}");
+                reportSw.WriteLine($"Średni stopień wejściowy: {graph.AverageInDegree}");
+                reportSw.WriteLine($"Średni stopień wyjściowy: {graph.AverageOutDegree}");
+                reportSw.WriteLine($"Średni PageRank: {graph.AveragePageRank}");
+
+                // TODO pagerank, invalid
                 reportSw.WriteLine("\n");
 
                 // Node info
@@ -103,6 +108,7 @@
                     reportSw.WriteLine($"Wierzchołek: {node.Key}");
                     reportSw.WriteLine($"\tInDegree: {node.Value.InDegree}");
                     reportSw.WriteLine($"\tOutDegree: {node.Value.OutDegree}");
+                    reportSw.WriteLine($"\tPageRank: {node.Value.PageRank}");
                     reportSw.WriteLine("\tSąsiedzi:");
                     foreach (var subnode in node.Value.Neighbours)
                     {
@@ -122,7 +128,7 @@
                 // Node info
                 foreach (var node in graph.Neighborhood)
                 {
-                    sw.WriteLine($"Wierzchołek: {node}");
+                    sw.WriteLine($"Wierzchołek: {node.Key}");
                     foreach (var neighbour in node.Value.ShortestPaths)
                     {
                         sw.WriteLine($"\tŚcieżka do {neighbour.Key}");
