@@ -15,17 +15,15 @@
             this.graph = graph;
         }
 
-        public double Damping { get; set; } = 0.85;
+        public double Damping { get; set; } = 0.4;
 
-        public int MaxSteps { get; set; } = 10;
-
-        public double Convergence { get; set; } = 1e-4;
+        public double Convergence { get; set; } = 0.00001;
 
         private int N => this.graph.NumberOfNodes;
 
         private readonly Dictionary<Uri, double> previousPageRankValues = new Dictionary<Uri, double>();
 
-        public void DoWork()
+        public int DoWork()
         {
             foreach (var uri in this.graph.Neighborhood)
             {
@@ -33,8 +31,11 @@
                 this.previousPageRankValues[uri.Key] = double.MaxValue / 100;
             }
 
+            int iterations = 0;
+
             while (this.previousPageRankValues.All(kvp => Math.Abs(kvp.Value - this.graph.Neighborhood[kvp.Key].PageRank) > this.Convergence))
             {
+                ++iterations;
                 foreach (var url1 in this.graph.Neighborhood)
                 {
                     this.previousPageRankValues[url1.Key] = url1.Value.PageRank;
@@ -52,6 +53,8 @@
                     url1.Value.PageRank += this.Damping * sum;
                 }
             }
+
+            return iterations;
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿namespace Crawler
 {
+    using System.Diagnostics;
+
     using Crawler.Algorithms;
 
     using Model;
@@ -33,9 +35,13 @@
             }
 
             var floyd = new FloydWarshall();
+            var sw = new Stopwatch();
+            sw.Start();
             floyd.DoWork(graph);
+            sw.Stop();
+            graph.FloydTime = sw.Elapsed;
             var PageRank = new PageRank(graph);
-            PageRank.DoWork();
+            graph.Iterations = PageRank.DoWork();
         }
     }
 }

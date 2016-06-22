@@ -37,6 +37,10 @@
             }
         }
 
+        public int Iterations { get; set; }
+        public TimeSpan AnalyzeTime { get; set; }
+        public TimeSpan FloydTime { get; set; }
+
         public double GetAverageDistance()
         {
             var count = 0;

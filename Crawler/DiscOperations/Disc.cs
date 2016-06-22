@@ -82,6 +82,30 @@
 
             this.SaveReport(graph, filename);
             this.SavePaths(graph, filename);
+            this.SaveIn(graph,filename);
+            this.SaveOut(graph, filename);
+        }
+
+        private void SaveIn(Graph graph, string filename)
+        {
+            using (var sw = new StreamWriter($"{filename}-int.txt"))
+            {
+                foreach (var node in graph.Neighborhood)
+                {
+                    sw.WriteLine($"{node.Value.InDegree}");
+                }
+            }
+        }
+
+        private void SaveOut(Graph graph, string filename)
+        {
+            using (var sw = new StreamWriter($"{filename}-out.txt"))
+            {
+                foreach (var node in graph.Neighborhood)
+                {
+                    sw.WriteLine($"{node.Value.OutDegree}");
+                }
+            }
         }
 
         private void SaveReport(Graph graph, string filename)
@@ -98,6 +122,9 @@
                 reportSw.WriteLine($"Średni stopień wejściowy: {graph.AverageInDegree}");
                 reportSw.WriteLine($"Średni stopień wyjściowy: {graph.AverageOutDegree}");
                 reportSw.WriteLine($"Średni PageRank: {graph.AveragePageRank}");
+                reportSw.WriteLine($"Iteracje PageRank: {graph.Iterations}");
+                reportSw.WriteLine($"Czas analizy: {graph.AnalyzeTime}");
+                reportSw.WriteLine($"Czas Floyda: {graph.FloydTime}");
 
                 // TODO pagerank, invalid
                 reportSw.WriteLine("\n");

@@ -69,6 +69,7 @@
             await this.ParseDocument(this.domain);
             sw.Stop();
 
+            graph.AnalyzeTime = sw.Elapsed;
             Debug.WriteLine(sw.Elapsed);
 
             return this.graph;
