@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Crawler.DiscOperations;
@@ -55,6 +56,7 @@
         /// </param>
         public async Task<Graph> StartAnalyzingDomain(Uri startDomain)
         {
+            this.SetThreading();
             this.domain = startDomain;
             this.uriValidator = new UriValidator(startDomain);
             this.disc = new Disc(startDomain);
@@ -75,12 +77,29 @@
             return this.graph;
         }
 
+
+        private void SetThreading()
+        {
+            int minIO, minThreads;
+            ThreadPool.GetMinThreads(out minThreads, out minIO);
+            ThreadPool.SetMinThreads(1, minIO);
+
+            int maxThreads, maxThreadsAsync;
+            ThreadPool.GetMaxThreads(out maxThreads, out maxThreadsAsync);
+            ThreadPool.SetMaxThreads(1000, maxThreadsAsync);
+
+            ThreadPool.GetMaxThreads(out maxThreads, out maxThreadsAsync);
+
+
+           // options = new ParallelOptions() { MaxDegreeOfParallelism = MaxConcurrency };
+        }
+
         public async Task ParseDocument(Uri uri)
         {
             string content;
             try
             {
-                content = await new WebClient().DownloadStringTaskAsync(uri);
+                content =  new WebClient().DownloadString(uri);
             }
             catch (WebException)
             {
@@ -90,7 +109,7 @@
             var matches = this.linkRegex.Matches(content).Cast<Match>();
             var tasks = new ConcurrentBag<Task> { this.disc.SaveDocument(uri, content) };
 
-            Parallel.ForEach(matches, match =>
+            Parallel.ForEach(matches, new ParallelOptions() { MaxDegreeOfParallelism = 30 }, match =>
                 {
                     var nodeToVisit = this.uriValidator.ValidateUri(this.domain, match.Groups[1].Value);
                     try

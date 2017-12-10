@@ -15,7 +15,7 @@
             this.graph = graph;
         }
 
-        public double Damping { get; set; } = 0.4;
+        public double Dampening { get; set; } = 0.85;
 
         public double Convergence { get; set; } = 0.00001;
 
@@ -40,7 +40,7 @@
                 {
                     this.previousPageRankValues[url1.Key] = url1.Value.PageRank;
 
-                   url1.Value.PageRank = (1 - this.Damping) / this.N;
+                   url1.Value.PageRank = (1 - this.Dampening) / this.N;
                     var sum = 0.0;
 
                     foreach (var url2 in this.graph.Neighborhood)
@@ -50,7 +50,7 @@
                             sum += url2.Value.PageRank / url2.Value.OutDegree;
                         }
                     }
-                    url1.Value.PageRank += this.Damping * sum;
+                    url1.Value.PageRank += this.Dampening * sum;
                 }
             }
 
